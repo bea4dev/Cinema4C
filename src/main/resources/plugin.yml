@@ -1,0 +1,15 @@
+name: Cinema4C
+version: ${project.version}
+main: be4rjp.cinema4c.Cinema4C
+api-version: 1.15
+depend: [WorldEdit]
+#--------------------------------------
+commands:
+  c4c:
+    description: Type /c4c help
+    usage: Type /c4c help
+    permission: c4c.admin
+#--------------------------------------
+permissions:
+  c4c.admin:
+    description: admin command.
