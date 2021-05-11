@@ -94,6 +94,7 @@ swing: 0, 1, 2, 3
 実際のムービーデータの例です
 ```yaml
 version: 1
+after-location: 'world, 0.0, 0.0, 0.0, 0.0, 0.0'
 scenes:
   - 'record1, 0, 0, [world, 0.0, 0.0, 0.0]'
   - 'record2, 60, 150, [world, 0.0, 0.0, 0.0]'
@@ -103,6 +104,11 @@ scenes:
 version: 1
 ```
 バージョンです。　バージョンがプラグイン側と合致しない場合は読み込めません。
+
+```yaml
+after-location: 'world, 0.0, 0.0, 0.0, 0.0, 0.0'
+```
+再生終了後にプレイヤーをテレポートさせる場所です
 
 ```yaml
 scenes:

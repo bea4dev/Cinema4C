@@ -1,23 +1,19 @@
 package be4rjp.cinema4c.data.record.tracking;
 
 import be4rjp.cinema4c.Cinema4C;
+import be4rjp.cinema4c.nms.NMSUtil;
 import be4rjp.cinema4c.player.ScenePlayer;
 import be4rjp.cinema4c.recorder.SceneRecorder;
 import be4rjp.cinema4c.util.Vec2f;
-import net.minecraft.server.v1_15_R1.*;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_15_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * カメラ用の録画データ
@@ -33,7 +29,7 @@ public class CameraTrackData implements TrackData{
     private int endTick = 0;
     
     //再生時にカメラとして設定するエンティティ
-    private final Map<Integer, EntityArmorStand> standMap = new HashMap<>();
+    private final Map<Integer, Object> standMap = new HashMap<>();
     
     
     public CameraTrackData(Player actor){
@@ -77,20 +73,21 @@ public class CameraTrackData implements TrackData{
             Vector location = scenePlayer.getBaseLocation().clone().add(locationMap.get(tick)).toVector();
             Vec2f yawPitch = yawPitchMap.get(tick);
             
-            EntityArmorStand armorStand = standMap.get(scenePlayer.getID());
-            armorStand.setLocation(location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
-            PacketPlayOutCamera camera = new PacketPlayOutCamera(armorStand);
-            PacketPlayOutEntityTeleport teleport = new PacketPlayOutEntityTeleport(armorStand);
-            PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook lookMove = new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(armorStand.getBukkitEntity().getEntityId(), (short) 0, (short) 0, (short) 0, ((byte) ((yawPitch.x * 256.0F) / 360.0F)), ((byte) ((yawPitch.y * 256.0F) / 360.0F)), true);
-            PacketPlayOutEntityHeadRotation rotation = new PacketPlayOutEntityHeadRotation(armorStand, (byte) ((yawPitch.x * 256.0F) / 360.0F));
+            try {
+                Object stand = standMap.get(scenePlayer.getID());
+                NMSUtil.setEntityPositionRotation(stand, location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
+                Object camera = NMSUtil.createCameraPacket(stand);
+                Object teleport = NMSUtil.createEntityTeleportPacket(stand);
+                Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(stand), (yawPitch.x * 256.0F) / 360.0F, (yawPitch.y * 256.0F) / 360.0F);
+                Object rotation = NMSUtil.createEntityHeadRotationPacket(stand, (yawPitch.x * 256.0F) / 360.0F);
     
-            for (Player player : scenePlayer.getAudiences()) {
-                EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
-                entityPlayer.playerConnection.sendPacket(camera);
-                entityPlayer.playerConnection.sendPacket(teleport);
-                entityPlayer.playerConnection.sendPacket(lookMove);
-                entityPlayer.playerConnection.sendPacket(rotation);
-            }
+                for (Player player : scenePlayer.getAudiences()) {
+                    NMSUtil.sendPacket(player, rotation);
+                    NMSUtil.sendPacket(player, lookMove);
+                    NMSUtil.sendPacket(player, teleport);
+                    NMSUtil.sendPacket(player, camera);
+                }
+            }catch (Exception e){e.printStackTrace();}
         }
     }
     
@@ -102,18 +99,21 @@ public class CameraTrackData implements TrackData{
         //エンティティを作成してScenePlayerのIDと紐づけて保存
         Location baseLocation = scenePlayer.getBaseLocation();
         if(standMap.get(scenePlayer.getID()) == null){
-            WorldServer nmsWorld = ((CraftWorld) baseLocation.getWorld()).getHandle();
-            EntityArmorStand entityArmorStand = new EntityArmorStand(nmsWorld, baseLocation.getX(), baseLocation.getY(), baseLocation.getZ());
-            entityArmorStand.setInvisible(true);
-            standMap.put(scenePlayer.getID(), entityArmorStand);
+            try {
+                Object stand = NMSUtil.createEntityArmorStand(baseLocation.getWorld(), baseLocation.getX(), baseLocation.getY(), baseLocation.getZ());
+                standMap.put(scenePlayer.getID(), stand);
+            }catch (Exception e){e.printStackTrace();}
         }
         //最初の再生位置を取得する
         if(locationMap.size() > 0){
             for(int index = 0; index < endTick; index++){
                 Vector location = locationMap.get(index);
-                if(location != null){
+                Vec2f yawPitch = yawPitchMap.get(index);
+                if(location != null && yawPitch != null){
                     Location loc = baseLocation.clone().add(location);
-                    standMap.get(scenePlayer.getID()).setPositionRotation(loc.getX(), loc.getY(), loc.getZ(), baseLocation.getYaw(), baseLocation.getPitch());
+                    try {
+                        NMSUtil.setEntityPositionRotation(standMap.get(scenePlayer.getID()), loc.getX(), loc.getY(), loc.getZ(), yawPitch.x, yawPitch.y);
+                    }catch (Exception e){e.printStackTrace();}
                     return;
                 }
             }
@@ -125,14 +125,18 @@ public class CameraTrackData implements TrackData{
      * @param scenePlayer
      */
     public void spawnStand(ScenePlayer scenePlayer){
-        EntityArmorStand entityArmorStand = standMap.get(scenePlayer.getID());
-        PacketPlayOutSpawnEntityLiving spawn = new PacketPlayOutSpawnEntityLiving(entityArmorStand);
-        PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(entityArmorStand.getBukkitEntity().getEntityId(), entityArmorStand.getDataWatcher(), true);
-        for(Player player : scenePlayer.getAudiences()) {
-            EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
-            entityPlayer.playerConnection.sendPacket(spawn);
-            entityPlayer.playerConnection.sendPacket(metadata);
-        }
+        try {
+            Object stand = standMap.get(scenePlayer.getID());
+            Object spawn = NMSUtil.createSpawnEntityLivingPacket(stand);
+            Object metadata = NMSUtil.createEntityMetadataPacket(stand);
+            Location loc = NMSUtil.getEntityLocation(stand);
+            Object rotation = NMSUtil.createEntityHeadRotationPacket(stand, (loc.getYaw() * 256.0F) / 360.0F);
+            for (Player player : scenePlayer.getAudiences()) {
+                NMSUtil.sendPacket(player, spawn);
+                NMSUtil.sendPacket(player, rotation);
+                NMSUtil.sendPacket(player, metadata);
+            }
+        }catch (Exception e){e.printStackTrace();}
     }
     
     @Override
@@ -140,11 +144,20 @@ public class CameraTrackData implements TrackData{
         initializeStand(scenePlayer);
         spawnStand(scenePlayer);
         
+        Object stand = standMap.get(scenePlayer.getID());
+        Location location = null;
+        
+        try{
+            location = NMSUtil.getEntityLocation(stand);
+        }catch (Exception e){e.printStackTrace();}
+    
+        Location loc = location;
         BukkitRunnable task = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : scenePlayer.getAudiences()) {
                     player.setGameMode(GameMode.SPECTATOR);
+                    player.teleport(loc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
             }
         };
@@ -163,15 +176,17 @@ public class CameraTrackData implements TrackData{
     
     @Override
     public void playEnd(ScenePlayer scenePlayer) {
-        PacketPlayOutGameStateChange stateChange = new PacketPlayOutGameStateChange(3, 2);
-        PacketPlayOutEntityDestroy destroy = new PacketPlayOutEntityDestroy(standMap.get(scenePlayer.getID()).getBukkitEntity().getEntityId());
-        for(Player player : scenePlayer.getAudiences()) {
-            EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
-            PacketPlayOutCamera camera = new PacketPlayOutCamera(entityPlayer);
-            entityPlayer.playerConnection.sendPacket(stateChange);
-            entityPlayer.playerConnection.sendPacket(destroy);
-            entityPlayer.playerConnection.sendPacket(camera);
-        }
+        try {
+            Object stateChange = NMSUtil.createGameStateChangePacket(3, 2);
+            Object destroy = NMSUtil.createEntityDestroyPacket(standMap.get(scenePlayer.getID()));
+            for (Player player : scenePlayer.getAudiences()) {
+                Object entityPlayer = NMSUtil.getNMSPlayer(player);
+                Object camera = NMSUtil.createCameraPacket(entityPlayer);
+                NMSUtil.sendPacket(player, stateChange);
+                NMSUtil.sendPacket(player, destroy);
+                NMSUtil.sendPacket(player, camera);
+            }
+        }catch (Exception e){e.printStackTrace();}
         
         BukkitRunnable task = new BukkitRunnable() {
             @Override

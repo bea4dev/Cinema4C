@@ -4,7 +4,7 @@ import be4rjp.cinema4c.Cinema4C;
 import be4rjp.cinema4c.data.play.MovieData;
 import be4rjp.cinema4c.data.record.RecordData;
 import be4rjp.cinema4c.data.record.tracking.TrackData;
-import be4rjp.cinema4c.recorder.RecordManager;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -115,6 +115,7 @@ public class ScenePlayer extends BukkitRunnable {
                     @Override
                     public void run() {
                         for (Player audience : audiences) {
+                            audience.setGameMode(GameMode.ADVENTURE);
                             audience.teleport(movieData.getAfterLocation());
                         }
                     }

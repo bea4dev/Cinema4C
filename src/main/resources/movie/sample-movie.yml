@@ -1,4 +1,5 @@
 version: 1
+after-location: 'world, 0.0, 0.0, 0.0, 0.0, 0.0'
 scenes:
   - 'sample-record, 0, 0, [world, 0.0, 0.0, 0.0]'
   - 'sample-record, 60, 150, [world, 0.0, 0.0, 0.0]'

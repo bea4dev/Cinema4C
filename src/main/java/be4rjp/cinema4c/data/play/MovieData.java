@@ -5,6 +5,7 @@ import be4rjp.cinema4c.data.record.RecordData;
 import be4rjp.cinema4c.exception.DifferentVersionException;
 import be4rjp.cinema4c.player.ScenePlayer;
 import be4rjp.cinema4c.recorder.RecordManager;
+import be4rjp.cinema4c.util.ConfigUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -53,7 +54,7 @@ public class MovieData {
             throw new DifferentVersionException("Cannot load movie data due to different version. System version->" + VERSION + " File version->" + ver);
         
         if(yml.contains("after-location")){
-            this.afterLocation = yml.getLocation("after-location");
+            this.afterLocation = ConfigUtil.toLocation(yml.getString("after-location"));
         }
         
         List<String> sceneList = yml.getStringList("scenes");

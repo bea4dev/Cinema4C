@@ -1,5 +1,6 @@
 package be4rjp.cinema4c;
 
+import be4rjp.cinema4c.bridge.Cinema4CBridge;
 import be4rjp.cinema4c.command.c4cCommandExecutor;
 import be4rjp.cinema4c.listener.EventListener;
 import be4rjp.cinema4c.player.PlayManager;
@@ -28,6 +29,8 @@ public final class Cinema4C extends JavaPlugin {
         getLogger().info("Registering command executors...");
         getCommand("c4c").setExecutor(new c4cCommandExecutor());
         getCommand("c4c").setTabCompleter(new c4cCommandExecutor());
+    
+        Cinema4CBridge.initialize();
         
         getLogger().info(ChatColor.GREEN + "Complete!");
     }
