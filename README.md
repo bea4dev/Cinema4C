@@ -2,9 +2,16 @@
 
 映像録画 & 再生プラグイン
 
-現在は1.15.xでのみ動作
+```yaml
+depend: WorldEdit
+```
 
-多バージョンは追々対応予定
+[Wiki](https://github.com/Be4rJP/Cinema4C/wiki)
+
+### 動作確認済み環境
+```
+Spigot: 1.15.x, 1.16.x
+```
 
 ### 概要
 
@@ -181,17 +188,18 @@ WorldEditでトラッキングする範囲を選択した後、前のコマン�
 ### Maven
 ```xml
 <repositories>
-	<repository>
-		<id>jitpack.io</id>
-		<url>https://jitpack.io</url>
-	</repository>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
 </repositories>
 ```
 
 ```xml
 <dependency>
-	<groupId>com.github.Be4rJP</groupId>
-	<artifactId>Cinema4C</artifactId>
-	<version>v1.0.1</version>
+    <groupId>com.github.Be4rJP</groupId>
+    <artifactId>Cinema4C</artifactId>
+    <version>v1.0.1</version>
+    <scope>provided</scope>
 </dependency>
 ```
