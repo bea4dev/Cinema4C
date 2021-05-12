@@ -176,3 +176,22 @@ WorldEditでトラッキングする範囲を選択した後、前のコマン�
 /c4c record save test
 ```
 「test」という名前の録画データをファイルに保存
+
+
+### Maven
+```xml
+<repositories>
+	<repository>
+		<id>jitpack.io</id>
+		<url>https://jitpack.io</url>
+	</repository>
+</repositories>
+```
+
+```xml
+<dependency>
+	<groupId>com.github.Be4rJP</groupId>
+	<artifactId>Cinema4C</artifactId>
+	<version>v1.0.1</version>
+</dependency>
+```
