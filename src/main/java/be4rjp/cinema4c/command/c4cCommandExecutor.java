@@ -97,7 +97,7 @@ public class c4cCommandExecutor implements CommandExecutor, TabExecutor {
                     
                     ScenePlayer scenePlayer = PlayManager.createScenePlayer(recordData, minLocation.toLocation(world), 0, 0);
                     scenePlayer.addAudience(player);
-                    scenePlayer.initialize();
+                    //scenePlayer.initialize();
                     scenePlayer.start(ScenePlayer.PlayMode.ALL_PLAY);
                     sender.sendMessage(ChatColor.GREEN + "再生を開始しました。");
                     return true;

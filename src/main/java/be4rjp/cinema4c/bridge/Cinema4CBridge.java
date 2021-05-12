@@ -21,7 +21,7 @@ public class Cinema4CBridge {
      * @param name 登録するプラグイン名。録画データのコマンド等で使用される
      * @param pluginBridge PluginBridgeを継承したサブプラグイン側実装クラスのインスタンス
      */
-    public void registerPluginBridge(String name, PluginBridge pluginBridge){
+    public static void registerPluginBridge(String name, PluginBridge pluginBridge){
         bridgeMap.put(name, pluginBridge);
     }
     
@@ -31,7 +31,7 @@ public class Cinema4CBridge {
      * @param name
      * @return
      */
-    public PluginBridge getPluginBridge(String name){
+    public static PluginBridge getPluginBridge(String name){
         return bridgeMap.get(name);
     }
 }

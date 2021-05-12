@@ -1,9 +1,6 @@
 package be4rjp.cinema4c.data.record;
 
-import be4rjp.cinema4c.data.record.tracking.CameraTrackData;
-import be4rjp.cinema4c.data.record.tracking.MessageData;
-import be4rjp.cinema4c.data.record.tracking.PlayerTrackData;
-import be4rjp.cinema4c.data.record.tracking.TrackData;
+import be4rjp.cinema4c.data.record.tracking.*;
 import be4rjp.cinema4c.exception.DifferentVersionException;
 import be4rjp.cinema4c.player.ScenePlayer;
 import be4rjp.cinema4c.recorder.SceneRecorder;
@@ -130,6 +127,13 @@ public class RecordData {
                     MessageData messageData = new MessageData();
                     messageData.load(yml, "track-data." + dataName);
                     this.trackData.add(messageData);
+                    break;
+                }
+                
+                case EXTENSIONS:{
+                    ExtensionsData extensionsData = new ExtensionsData();
+                    extensionsData.load(yml, "track-data." + dataName);
+                    this.trackData.add(extensionsData);
                     break;
                 }
             }

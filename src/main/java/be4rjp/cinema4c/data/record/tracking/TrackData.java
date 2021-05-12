@@ -75,6 +75,7 @@ public interface TrackData {
     public enum DataType{
         CAMERA,
         NPC,
-        MESSAGE
+        MESSAGE,
+        EXTENSIONS
     }
 }

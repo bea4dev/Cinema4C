@@ -118,7 +118,7 @@ public class MovieData {
             beforePlayer = scenePlayer;
             index++;
         }
-        firstPlayer.initialize();
+        //firstPlayer.initialize();
         firstPlayer.start(ScenePlayer.PlayMode.ALL_PLAY);
     }
     

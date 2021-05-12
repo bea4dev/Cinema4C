@@ -118,7 +118,6 @@ public class NMSUtil {
         Class<?> Entity = getNMSClass("Entity");
         Method getBukkitEntity = Entity.getMethod("getBukkitEntity");
         Object bukkitEntity = getBukkitEntity.invoke(entity);
-        
         return ((org.bukkit.entity.Entity)bukkitEntity).getLocation();
     }
     
@@ -185,8 +184,15 @@ public class NMSUtil {
             IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
         
         Class<?> packetClass = getNMSClass("PacketPlayOutGameStateChange");
-        Constructor<?> packetConstructor = packetClass.getConstructor(int.class, float.class);
-        return packetConstructor.newInstance(i, j);
+        try {
+            Constructor<?> packetConstructor = packetClass.getConstructor(int.class, float.class);
+            return packetConstructor.newInstance(i, j);
+        }catch (NoSuchMethodException e){
+            Class<?> classA = getNMSClass("PacketPlayOutGameStateChange$a");
+            Field a = packetClass.getFields()[i];
+            Constructor<?> packetConstructor = packetClass.getConstructor(classA, float.class);
+            return packetConstructor.newInstance(a.get(null), j);
+        }
     }
     
     

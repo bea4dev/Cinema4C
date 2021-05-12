@@ -62,6 +62,7 @@ public class ScenePlayer extends BukkitRunnable {
         }
     }
     
+    
     public void setNextPlayer(ScenePlayer nextPlayer) {this.nextPlayer = nextPlayer;}
     
     public void setMovieData(MovieData movieData) {this.movieData = movieData;}
@@ -72,16 +73,45 @@ public class ScenePlayer extends BukkitRunnable {
         }
     }
     
+    /**
+     * このプレイヤーのIDを取得
+     * @return
+     */
     public int getID() {return id;}
     
+    
+    /**
+     * このプレイヤーが再生している録画データを取得
+     * @return RecordData
+     */
     public RecordData getRecordData() {return recordData;}
     
+    
+    /**
+     * このプレイヤーの再生基準位置を取得
+     * @return Location
+     */
     public Location getBaseLocation() {return baseLocation.clone();}
     
+    
+    /**
+     * 録画データを再生して見せるプレイヤーを追加
+     * @param audience
+     */
     public void addAudience(Player audience){audiences.add(audience);}
     
+    
+    /**
+     * 録画データを再生して見せるプレイヤーを取得
+     * @return Set<Player>
+     */
     public Set<Player> getAudiences() {return audiences;}
     
+    
+    /**
+     * 録画データを再生して見せるプレイヤーを設定
+     * @return Set<Player>
+     */
     public void setAudiences(Set<Player> audiences) {this.audiences = audiences;}
     
     @Override
@@ -97,7 +127,13 @@ public class ScenePlayer extends BukkitRunnable {
     public void start(PlayMode playMode){
         this.playMode = playMode;
         
-        this.runTaskTimerAsynchronously(Cinema4C.getPlugin(), 0, 1);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                ScenePlayer.this.initialize();
+                ScenePlayer.this.runTaskTimerAsynchronously(Cinema4C.getPlugin(), 0, 1);
+            }
+        }.runTask(Cinema4C.getPlugin());
     }
     
     @Override
@@ -106,8 +142,7 @@ public class ScenePlayer extends BukkitRunnable {
             trackData.playEnd(this);
         }
         if(nextPlayer != null){
-            nextPlayer.initialize();
-            nextPlayer.runTaskTimerAsynchronously(Cinema4C.getPlugin(), 0, 1);
+            nextPlayer.start(playMode);
         }
         if(movieData != null){
             if(movieData.getAfterLocation() != null) {
