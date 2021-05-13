@@ -37,6 +37,11 @@ public class ExtensionsData implements TrackData{
             String command = args[1];
     
             PluginBridge pluginBridge = Cinema4CBridge.getPluginBridge(pluginName);
+            
+            if(pluginBridge == null){
+                Cinema4C.getPlugin().getLogger().warning("Extension plugin '" + pluginName + "' was not found.");
+                return;
+            }
             pluginBridge.executeCommand(scenePlayer, command);
         }
     }
