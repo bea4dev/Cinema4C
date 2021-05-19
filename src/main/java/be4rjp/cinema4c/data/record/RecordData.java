@@ -136,6 +136,13 @@ public class RecordData {
                     this.trackData.add(extensionsData);
                     break;
                 }
+                
+                case EFFECT:{
+                    EffectData effectData = new EffectData();
+                    effectData.load(yml, "track-data." + dataName);
+                    this.trackData.add(effectData);
+                    break;
+                }
             }
         }
     }

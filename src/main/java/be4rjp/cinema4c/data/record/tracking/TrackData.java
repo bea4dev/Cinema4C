@@ -76,6 +76,7 @@ public interface TrackData {
         CAMERA,
         NPC,
         MESSAGE,
-        EXTENSIONS
+        EXTENSIONS,
+        EFFECT
     }
 }
