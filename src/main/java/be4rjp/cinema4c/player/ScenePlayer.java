@@ -73,6 +73,8 @@ public class ScenePlayer extends BukkitRunnable {
         }
     }
     
+    public boolean hasNextPlayer(){return this.nextPlayer != null;}
+    
     /**
      * このプレイヤーのIDを取得
      * @return
@@ -131,7 +133,7 @@ public class ScenePlayer extends BukkitRunnable {
             @Override
             public void run() {
                 ScenePlayer.this.initialize();
-                ScenePlayer.this.runTaskTimerAsynchronously(Cinema4C.getPlugin(), 0, 1);
+                ScenePlayer.this.runTaskTimerAsynchronously(Cinema4C.getPlugin(), 5, 1);
             }
         }.runTask(Cinema4C.getPlugin());
     }

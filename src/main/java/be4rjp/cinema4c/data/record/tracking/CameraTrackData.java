@@ -5,11 +5,11 @@ import be4rjp.cinema4c.nms.NMSUtil;
 import be4rjp.cinema4c.player.ScenePlayer;
 import be4rjp.cinema4c.recorder.SceneRecorder;
 import be4rjp.cinema4c.util.Vec2f;
+import io.papermc.lib.PaperLib;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -69,7 +69,7 @@ public class CameraTrackData implements TrackData{
     
     @Override
     public void play(ScenePlayer scenePlayer, int tick) {
-        if(locationMap.keySet().contains(tick)) {
+        if(locationMap.containsKey(tick)) {
             Vector location = scenePlayer.getBaseLocation().clone().add(locationMap.get(tick)).toVector();
             Vec2f yawPitch = yawPitchMap.get(tick);
             
@@ -130,9 +130,11 @@ public class CameraTrackData implements TrackData{
             Object spawn = NMSUtil.createSpawnEntityLivingPacket(stand);
             Object metadata = NMSUtil.createEntityMetadataPacket(stand);
             Location loc = NMSUtil.getEntityLocation(stand);
+            Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(stand), (loc.getYaw() * 256.0F) / 360.0F, (loc.getPitch() * 256.0F) / 360.0F);
             Object rotation = NMSUtil.createEntityHeadRotationPacket(stand, (loc.getYaw() * 256.0F) / 360.0F);
             for (Player player : scenePlayer.getAudiences()) {
                 NMSUtil.sendPacket(player, spawn);
+                NMSUtil.sendPacket(player, lookMove);
                 NMSUtil.sendPacket(player, rotation);
                 NMSUtil.sendPacket(player, metadata);
             }
@@ -145,19 +147,17 @@ public class CameraTrackData implements TrackData{
         spawnStand(scenePlayer);
         
         Object stand = standMap.get(scenePlayer.getID());
-        Location location = null;
         
         try{
-            location = NMSUtil.getEntityLocation(stand);
+            Location location = NMSUtil.getEntityLocation(stand);
+            scenePlayer.getAudiences().forEach(player -> PaperLib.teleportAsync(player, location));
         }catch (Exception e){e.printStackTrace();}
-    
-        Location loc = location;
+        
         BukkitRunnable task = new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : scenePlayer.getAudiences()) {
                     player.setGameMode(GameMode.SPECTATOR);
-                    player.teleport(loc, PlayerTeleportEvent.TeleportCause.PLUGIN);
                 }
             }
         };
