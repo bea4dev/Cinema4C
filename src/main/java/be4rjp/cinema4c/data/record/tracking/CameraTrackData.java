@@ -188,6 +188,7 @@ public class CameraTrackData implements TrackData{
             }
         }catch (Exception e){e.printStackTrace();}
         
+        /*
         BukkitRunnable task = new BukkitRunnable() {
             @Override
             public void run() {
@@ -197,6 +198,7 @@ public class CameraTrackData implements TrackData{
             }
         };
         task.runTask(Cinema4C.getPlugin());
+         */
     }
     
     @Override
