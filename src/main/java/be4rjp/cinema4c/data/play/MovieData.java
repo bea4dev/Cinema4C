@@ -25,6 +25,8 @@ import java.util.Set;
 public class MovieData {
     
     private static final int VERSION = 1;
+
+    private static int playID = 0;
     
     private final String name;
     private final List<SceneData> sceneDataList = new ArrayList<>();
@@ -99,10 +101,15 @@ public class MovieData {
             }
         }
     }
-    
-    
-    public void play(Set<Player> audiences){
-        if(this.sceneDataList.size() == 0) return;
+
+
+    /**
+     * ムービーを再生する
+     * @param audiences ムービーを再生するプレイヤー
+     * @return ムービーの再生ID、AsyncMoviePlayFinishEventで取得できるIDと一致します
+     */
+    public int play(Set<Player> audiences){
+        if(this.sceneDataList.size() == 0) return -1;
         
         int index = 1;
         ScenePlayer beforePlayer = null;
@@ -112,7 +119,8 @@ public class MovieData {
             scenePlayer.setAudiences(audiences);
             if(beforePlayer != null) beforePlayer.setNextPlayer(scenePlayer);
             if(index == sceneDataList.size()){
-                scenePlayer.setMovieData(this);
+                playID++;
+                scenePlayer.setMovieData(this, playID);
             }
             if(index == 1) firstPlayer = scenePlayer;
             beforePlayer = scenePlayer;
@@ -120,6 +128,8 @@ public class MovieData {
         }
         //firstPlayer.initialize();
         firstPlayer.start(ScenePlayer.PlayMode.ALL_PLAY);
+
+        return playID;
     }
     
     

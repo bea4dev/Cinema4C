@@ -4,6 +4,7 @@ import be4rjp.cinema4c.Cinema4C;
 import be4rjp.cinema4c.data.play.MovieData;
 import be4rjp.cinema4c.data.record.RecordData;
 import be4rjp.cinema4c.data.record.tracking.TrackData;
+import be4rjp.cinema4c.event.AsyncMoviePlayFinishEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -37,6 +38,8 @@ public class ScenePlayer extends BukkitRunnable {
     private ScenePlayer nextPlayer = null;
     
     private MovieData movieData = null;
+
+    private int movieID = -1;
     
     private PlayMode playMode = PlayMode.ALL_PLAY;
     
@@ -65,7 +68,10 @@ public class ScenePlayer extends BukkitRunnable {
     
     public void setNextPlayer(ScenePlayer nextPlayer) {this.nextPlayer = nextPlayer;}
     
-    public void setMovieData(MovieData movieData) {this.movieData = movieData;}
+    public void setMovieData(MovieData movieData, int movieID) {
+        this.movieData = movieData;
+        this.movieID = movieID;
+    }
     
     public void initialize(){
         for(TrackData trackData : recordData.getTrackData()){
@@ -158,6 +164,8 @@ public class ScenePlayer extends BukkitRunnable {
                     }
                 }.runTask(Cinema4C.getPlugin());
             }
+            AsyncMoviePlayFinishEvent event = new AsyncMoviePlayFinishEvent(movieID, movieData);
+            Cinema4C.getPlugin().getServer().getPluginManager().callEvent(event);
         }
         super.cancel();
     }
