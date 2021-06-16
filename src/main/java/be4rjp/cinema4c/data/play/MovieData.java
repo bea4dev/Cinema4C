@@ -110,7 +110,8 @@ public class MovieData {
      */
     public int play(Set<Player> audiences){
         if(this.sceneDataList.size() == 0) return -1;
-        
+
+        playID++;
         int index = 1;
         ScenePlayer beforePlayer = null;
         ScenePlayer firstPlayer = null;
@@ -119,9 +120,9 @@ public class MovieData {
             scenePlayer.setAudiences(audiences);
             if(beforePlayer != null) beforePlayer.setNextPlayer(scenePlayer);
             if(index == sceneDataList.size()){
-                playID++;
-                scenePlayer.setMovieData(this, playID);
+                scenePlayer.setMovieData(this);
             }
+            scenePlayer.setMoviePlayID(playID);
             if(index == 1) firstPlayer = scenePlayer;
             beforePlayer = scenePlayer;
             index++;

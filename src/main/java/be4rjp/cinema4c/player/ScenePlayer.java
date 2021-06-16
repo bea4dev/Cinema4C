@@ -68,11 +68,12 @@ public class ScenePlayer extends BukkitRunnable {
     
     public void setNextPlayer(ScenePlayer nextPlayer) {this.nextPlayer = nextPlayer;}
     
-    public void setMovieData(MovieData movieData, int movieID) {
-        this.movieData = movieData;
-        this.movieID = movieID;
-    }
-    
+    public void setMovieData(MovieData movieData) {this.movieData = movieData;}
+
+    public int getMoviePlayID() {return movieID;}
+
+    public void setMoviePlayID(int moviePlayID) {this.movieID = moviePlayID;}
+
     public void initialize(){
         for(TrackData trackData : recordData.getTrackData()){
             trackData.playInitialize(this);
