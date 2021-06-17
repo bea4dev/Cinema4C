@@ -177,12 +177,12 @@ public class CameraTrackData implements TrackData{
     @Override
     public void playEnd(ScenePlayer scenePlayer) {
         try {
-            Object stateChange = NMSUtil.createGameStateChangePacket(3, 2);
+            //Object stateChange = NMSUtil.createGameStateChangePacket(3, 2);
             Object destroy = NMSUtil.createEntityDestroyPacket(standMap.get(scenePlayer.getID()));
             for (Player player : scenePlayer.getAudiences()) {
                 Object entityPlayer = NMSUtil.getNMSPlayer(player);
                 Object camera = NMSUtil.createCameraPacket(entityPlayer);
-                NMSUtil.sendPacket(player, stateChange);
+                //NMSUtil.sendPacket(player, stateChange);
                 NMSUtil.sendPacket(player, destroy);
                 NMSUtil.sendPacket(player, camera);
             }

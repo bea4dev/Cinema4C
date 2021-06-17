@@ -9,6 +9,7 @@ import be4rjp.cinema4c.util.ConfigUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -81,6 +82,9 @@ public class MovieData {
             int stopTick = Integer.parseInt(args[2]);
     
             World world = Bukkit.getWorld(args[3]);
+            if(world == null){
+                world = Bukkit.createWorld(new WorldCreator(args[3]));
+            }
             double x = Double.parseDouble(args[4]);
             double y = Double.parseDouble(args[5]);
             double z = Double.parseDouble(args[6]);
