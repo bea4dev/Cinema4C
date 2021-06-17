@@ -17,6 +17,7 @@ public class AsyncScenePlayFinishEvent extends Event {
     private final ScenePlayer scenePlayer;
     
     public AsyncScenePlayFinishEvent(ScenePlayer scenePlayer){
+        super(true);
         this.scenePlayer = scenePlayer;
     }
     

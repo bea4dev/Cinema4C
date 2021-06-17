@@ -5,6 +5,7 @@ import be4rjp.cinema4c.data.play.MovieData;
 import be4rjp.cinema4c.data.record.RecordData;
 import be4rjp.cinema4c.data.record.tracking.TrackData;
 import be4rjp.cinema4c.event.AsyncMoviePlayFinishEvent;
+import be4rjp.cinema4c.event.AsyncScenePlayFinishEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -147,6 +148,9 @@ public class ScenePlayer extends BukkitRunnable {
     
     @Override
     public synchronized void cancel() throws IllegalStateException {
+        AsyncScenePlayFinishEvent endEvent = new AsyncScenePlayFinishEvent(this);
+        Cinema4C.getPlugin().getServer().getPluginManager().callEvent(endEvent);
+        
         for(TrackData trackData : recordData.getTrackData()){
             trackData.playEnd(this);
         }

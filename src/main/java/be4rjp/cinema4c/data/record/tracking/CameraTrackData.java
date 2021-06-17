@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.tukaani.xz.XZ;
 
 import java.util.*;
 
@@ -150,6 +151,11 @@ public class CameraTrackData implements TrackData{
         
         try{
             Location location = NMSUtil.getEntityLocation(stand);
+            Vector direction = location.getDirection();
+            Vector XZVec = new Vector(direction.getX(), 0.0, direction.getZ());
+            if(XZVec.lengthSquared() > 0.0) XZVec.normalize().multiply(0.05);
+            location.add(XZVec);
+            
             scenePlayer.getAudiences().forEach(player -> PaperLib.teleportAsync(player, location));
         }catch (Exception e){e.printStackTrace();}
         
