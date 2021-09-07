@@ -23,6 +23,8 @@ public class RecordData {
     private final String name;
     //各種の録画データ
     private final Set<TrackData> trackData;
+    //ループしたときに戻すtick
+    private int loopBackTick = 0;
     
     public RecordData(String name) {
         this.name = name;
@@ -49,6 +51,12 @@ public class RecordData {
         this.trackData.forEach(data -> data.play(scenePlayer, tick));
     }
     
+    /**
+     * ループしたときに戻すtickを取得する
+     * @return int
+     */
+    public int getLoopBackTick() {return loopBackTick;}
+    
     public void createFile(File file){
         file.getParentFile().mkdir();
         if(!file.exists()){
@@ -68,6 +76,8 @@ public class RecordData {
     
         FileConfiguration yml = new YamlConfiguration();
         yml.set("version", VERSION);
+        
+        yml.set("loop-back-tick", loopBackTick);
         
         int index = 0;
         for(TrackData data : this.trackData){
@@ -96,6 +106,8 @@ public class RecordData {
         
         int ver = yml.getInt("version");
         if(ver != VERSION) throw new DifferentVersionException("Cannot load record data due to different version. System version->" + VERSION + " File version->" + ver);
+        
+        this.loopBackTick = yml.getInt("loop-back-tick");
     
         for (String dataName : yml.getConfigurationSection("track-data").getKeys(false)){
             String type = yml.getString("track-data." + dataName + ".type");

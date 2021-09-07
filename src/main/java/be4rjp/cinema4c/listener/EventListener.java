@@ -4,10 +4,13 @@ import be4rjp.cinema4c.data.record.tracking.PlayerTrackData;
 import be4rjp.cinema4c.data.record.tracking.TrackData;
 import be4rjp.cinema4c.recorder.RecordManager;
 import be4rjp.cinema4c.recorder.SceneRecorder;
+import be4rjp.cinema4c.util.AsyncPlayerManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class EventListener implements Listener {
     @EventHandler
@@ -28,5 +31,18 @@ public class EventListener implements Listener {
                 playerTrackData.setSwing(sceneRecorder.getTick());
             }
         }
+    }
+    
+    
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event){
+        Player player = event.getPlayer();
+        AsyncPlayerManager.getPlayers().add(player);
+    }
+    
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event){
+        Player player = event.getPlayer();
+        AsyncPlayerManager.getPlayers().add(player);
     }
 }

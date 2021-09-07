@@ -44,6 +44,7 @@ public class ScenePlayer extends BukkitRunnable {
     
     private PlayMode playMode = PlayMode.ALL_PLAY;
     
+    
     public ScenePlayer(RecordData recordData, Location baseLocation, int startTick, int stopTick){
         this.id = playerID;
         playerID++;
@@ -129,7 +130,13 @@ public class ScenePlayer extends BukkitRunnable {
         
         recordData.playTrackData(this, tick);
         
-        if(tick == endTick) this.cancel();
+        if(tick == endTick){
+            if(playMode == PlayMode.LOOP) {
+                tick = recordData.getLoopBackTick();
+            }else{
+                this.cancel();
+            }
+        }
         
         tick++;
     }
@@ -180,6 +187,7 @@ public class ScenePlayer extends BukkitRunnable {
     public enum PlayMode{
         ALL_PLAY,
         TRACK_DATA_ONLY,
-        CAMERA_ONLY
+        CAMERA_ONLY,
+        LOOP
     }
 }

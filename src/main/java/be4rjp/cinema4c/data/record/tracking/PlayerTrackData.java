@@ -3,6 +3,8 @@ package be4rjp.cinema4c.data.record.tracking;
 import be4rjp.cinema4c.nms.NMSUtil;
 import be4rjp.cinema4c.player.ScenePlayer;
 import be4rjp.cinema4c.recorder.SceneRecorder;
+import be4rjp.cinema4c.util.IntegerRange;
+import be4rjp.cinema4c.util.LocationUtil;
 import be4rjp.cinema4c.util.SkinManager;
 import be4rjp.cinema4c.util.Vec2f;
 import com.mojang.authlib.GameProfile;
@@ -25,6 +27,8 @@ public class PlayerTrackData implements TrackData{
     //位置と方向のマップ
     private final Map<Integer, Vector> locationMap = new HashMap<>();
     private final Map<Integer, Vec2f> yawPitchMap = new HashMap<>();
+    //プレイヤーのいる方向を向かせるtick
+    private final Set<IntegerRange> playerLookTick = new HashSet<>();
     //スニーク状態になっているときのTick
     private final Set<Integer> sneak = new HashSet<>();
     //腕を降った時のTick
@@ -89,7 +93,7 @@ public class PlayerTrackData implements TrackData{
             Location baseLocation = scenePlayer.getBaseLocation();
             if (npcMap.get(scenePlayer.getID()) == null) {
                 Object nmsServer = NMSUtil.getNMSServer(Bukkit.getServer());
-                Object nmsWorld = NMSUtil.getNMSWorld(baseLocation.getWorld());
+                Object nmsWorld = NMSUtil.getNMSWorld(Objects.requireNonNull(baseLocation.getWorld()));
                 String name = npcName == null ? actor.getName() : npcName;
                 GameProfile gameProfile = new GameProfile(UUID.randomUUID(), name);
                 if (skin != null) {
@@ -178,10 +182,43 @@ public class PlayerTrackData implements TrackData{
         try {
             Object npc = npcMap.get(scenePlayer.getID());
     
-            if (locationMap.keySet().contains(tick)) {
+            if (locationMap.containsKey(tick)) {
         
                 Vector location = scenePlayer.getBaseLocation().clone().add(locationMap.get(tick)).toVector();
                 Vec2f yawPitch = yawPitchMap.get(tick);
+                
+                
+                boolean playerLook = false;
+                for(IntegerRange integerRange : playerLookTick){
+                    if(integerRange.isInRange(tick)){
+                        playerLook = true;
+                        break;
+                    }
+                }
+                
+                if(playerLook){
+                    Player lookPlayer = null;
+                    double distance = Double.MAX_VALUE;
+                    for(Player player : scenePlayer.getAudiences()){
+                        double d = LocationUtil.distanceSquaredSafeDifferentWorld(player.getLocation(),
+                                location.toLocation(Objects.requireNonNull(scenePlayer.getBaseLocation().getWorld())));
+                        
+                        if(d < distance){
+                            
+                            lookPlayer = player;
+                            distance = d;
+                        }
+                    }
+                    
+                    if(lookPlayer == null){
+                        yawPitch = new Vec2f(0.0F, 0.0F);
+                    }else{
+                        Location playerLocation = lookPlayer.getLocation();
+                        Location temp = scenePlayer.getBaseLocation().clone();
+                        temp.setDirection(new Vector(playerLocation.getX() - location.getX(), playerLocation.getY() - location.getY(), playerLocation.getZ() - location.getZ()));
+                        yawPitch = new Vec2f(temp.getYaw(), temp.getPitch());
+                    }
+                }
         
                 NMSUtil.setEntityPositionRotation(npc, location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
         
@@ -289,6 +326,12 @@ public class PlayerTrackData implements TrackData{
             swingCount++;
         }
         yml.set(root + ".swing", swingData.toString());
+        
+        
+        //look-player (- '0 - 100')
+        List<String> lookPlayerLines = new ArrayList<>();
+        playerLookTick.forEach(integerRange -> lookPlayerLines.add(integerRange.toString()));
+        yml.set(root + ".look-player", lookPlayerLines);
     }
     
     @Override
@@ -347,5 +390,9 @@ public class PlayerTrackData implements TrackData{
                 }
             }
         }
+    
+        //look-player (- '0 - 100')
+        List<String> lookPlayerLines = yml.getStringList(root + ".look-player");
+        lookPlayerLines.forEach(line -> playerLookTick.add(IntegerRange.fromString(line)));
     }
 }
