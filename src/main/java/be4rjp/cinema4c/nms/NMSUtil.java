@@ -211,12 +211,19 @@ public class NMSUtil {
             throws ClassNotFoundException, SecurityException, NoSuchMethodException, NoSuchFieldException,
             IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
         
-        Class<?> PacketPlayOutEntity = getNMSClass("PacketPlayOutEntity");
-        Object packet = PacketPlayOutEntity.getConstructor(int.class).newInstance(entityID);
-        
         Class<?> packetClass = getNMSClass("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook");
         Constructor<?> packetConstructor = packetClass.getConstructor(int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class);
         return packetConstructor.newInstance(entityID, (short) 0, (short) 0, (short) 0, (byte)yaw, (byte)pitch, true);
+    }
+    
+    
+    public static Object createEntityMoveLookPacket(int entityID, double deltaX, double deltaY, double deltaZ, float yaw, float pitch)
+            throws ClassNotFoundException, SecurityException, NoSuchMethodException, NoSuchFieldException,
+            IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        
+        Class<?> packetClass = getNMSClass("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook");
+        Constructor<?> packetConstructor = packetClass.getConstructor(int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class);
+        return packetConstructor.newInstance(entityID, (short) (deltaX * 4096), (short) (deltaY * 4096), (short) (deltaZ * 4096), (byte)yaw, (byte)pitch, true);
     }
     
     

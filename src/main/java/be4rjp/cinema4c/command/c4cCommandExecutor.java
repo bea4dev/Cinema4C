@@ -247,7 +247,7 @@ public class c4cCommandExecutor implements CommandExecutor, TabExecutor {
                         return true;
                     }
     
-                    Set<Player> players = new HashSet<>();
+                    List<Player> players = new ArrayList<>();
                     players.add(player);
                     movieData.play(players);
                     sender.sendMessage(ChatColor.GREEN + "再生を開始しました。");

@@ -6,12 +6,15 @@ import be4rjp.cinema4c.data.record.RecordData;
 import be4rjp.cinema4c.data.record.tracking.TrackData;
 import be4rjp.cinema4c.event.AsyncMoviePlayFinishEvent;
 import be4rjp.cinema4c.event.AsyncScenePlayFinishEvent;
+import be4rjp.cinema4c.util.TaskHandler;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -26,7 +29,7 @@ public class ScenePlayer extends BukkitRunnable {
     //再生するデータ
     private final RecordData recordData;
     //データを再生して見せるプレイヤー
-    private Set<Player> audiences;
+    private List<Player> audiences;
     //再生する基準位置、録画時に指定したリージョンの最小位置
     private final Location baseLocation;
     
@@ -50,7 +53,7 @@ public class ScenePlayer extends BukkitRunnable {
         playerID++;
         
         this.recordData = recordData;
-        this.audiences = new HashSet<>();
+        this.audiences = new ArrayList<>();
     
         this.baseLocation = baseLocation;
         
@@ -114,16 +117,16 @@ public class ScenePlayer extends BukkitRunnable {
     
     /**
      * 録画データを再生して見せるプレイヤーを取得
-     * @return Set<Player>
+     * @return List<Player>
      */
-    public Set<Player> getAudiences() {return audiences;}
+    public List<Player> getAudiences() {return audiences;}
     
     
     /**
      * 録画データを再生して見せるプレイヤーを設定
-     * @return Set<Player>
+     * @return List<Player>
      */
-    public void setAudiences(Set<Player> audiences) {this.audiences = audiences;}
+    public void setAudiences(List<Player> audiences) {this.audiences = audiences;}
     
     @Override
     public void run() {
@@ -144,13 +147,10 @@ public class ScenePlayer extends BukkitRunnable {
     public void start(PlayMode playMode){
         this.playMode = playMode;
         
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                ScenePlayer.this.initialize();
-                ScenePlayer.this.runTaskTimerAsynchronously(Cinema4C.getPlugin(), 5, 1);
-            }
-        }.runTask(Cinema4C.getPlugin());
+        TaskHandler.runSync(() -> {
+            ScenePlayer.this.initialize();
+            ScenePlayer.this.runTaskTimerAsynchronously(Cinema4C.getPlugin(), 5, 1);
+        });
     }
     
     @Override
@@ -166,15 +166,12 @@ public class ScenePlayer extends BukkitRunnable {
         }
         if(movieData != null){
             if(movieData.getAfterLocation() != null) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        for (Player audience : audiences) {
-                            audience.setGameMode(GameMode.ADVENTURE);
-                            audience.teleport(movieData.getAfterLocation());
-                        }
+                TaskHandler.runSync(() -> {
+                    for (Player audience : audiences) {
+                        audience.setGameMode(GameMode.ADVENTURE);
+                        audience.teleport(movieData.getAfterLocation());
                     }
-                }.runTask(Cinema4C.getPlugin());
+                });
             }
             AsyncMoviePlayFinishEvent event = new AsyncMoviePlayFinishEvent(movieID, movieData);
             Cinema4C.getPlugin().getServer().getPluginManager().callEvent(event);

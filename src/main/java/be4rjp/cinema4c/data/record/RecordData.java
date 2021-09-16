@@ -124,12 +124,20 @@ public class RecordData {
                 case NPC:{
                     String name = yml.getString("track-data." + dataName + ".name");
                     String[] skin = null;
+                    int audienceSkin = -1;
+                    
                     if(yml.contains("track-data." + dataName + ".skin")) {
-                        String skin_value = yml.getString("track-data." + dataName + ".skin.value");
-                        String skin_signature = yml.getString("track-data." + dataName + ".skin.signature");
-                        skin = new String[]{skin_value, skin_signature};
+                        if(yml.contains("track-data." + dataName + ".skin.audience-skin")){
+                            audienceSkin = yml.getInt("track-data." + dataName + ".skin.audience-skin");
+                            skin = new String[]{"", ""};
+                        } else {
+                            String skin_value = yml.getString("track-data." + dataName + ".skin.value");
+                            String skin_signature = yml.getString("track-data." + dataName + ".skin.signature");
+                            skin = new String[]{skin_value, skin_signature};
+                        }
                     }
                     PlayerTrackData playerTrackData = new PlayerTrackData(skin, name);
+                    if(audienceSkin != -1) playerTrackData.setAudienceSkin(audienceSkin);
                     playerTrackData.load(yml, "track-data." + dataName);
                     this.trackData.add(playerTrackData);
                     break;

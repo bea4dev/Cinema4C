@@ -5,6 +5,7 @@ import be4rjp.cinema4c.data.record.tracking.TrackData;
 import be4rjp.cinema4c.recorder.RecordManager;
 import be4rjp.cinema4c.recorder.SceneRecorder;
 import be4rjp.cinema4c.util.AsyncPlayerManager;
+import be4rjp.cinema4c.util.PlayerSkinCash;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -38,6 +39,8 @@ public class EventListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event){
         Player player = event.getPlayer();
         AsyncPlayerManager.getPlayers().add(player);
+    
+        PlayerSkinCash.getPlayerSkin(player.getUniqueId().toString());
     }
     
     @EventHandler

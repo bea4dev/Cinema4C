@@ -3,10 +3,7 @@ package be4rjp.cinema4c.data.record.tracking;
 import be4rjp.cinema4c.nms.NMSUtil;
 import be4rjp.cinema4c.player.ScenePlayer;
 import be4rjp.cinema4c.recorder.SceneRecorder;
-import be4rjp.cinema4c.util.IntegerRange;
-import be4rjp.cinema4c.util.LocationUtil;
-import be4rjp.cinema4c.util.SkinManager;
-import be4rjp.cinema4c.util.Vec2f;
+import be4rjp.cinema4c.util.*;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import org.bukkit.Bukkit;
@@ -22,6 +19,11 @@ import java.util.*;
  */
 public class PlayerTrackData implements TrackData{
     
+    //ずらすtick
+    private static int tickParent = 0;
+    
+    
+    private final int plusTick;
     //トラッキングするプレイヤー
     private Player actor;
     //位置と方向のマップ
@@ -41,32 +43,34 @@ public class PlayerTrackData implements TrackData{
     private String[] skin = null;
     //NPCの名前
     private String npcName = null;
+    //スキンを映像を見せているプレイヤーから選ぶ時の番号
+    private int audienceSkin = -1;
     
     public PlayerTrackData(Player actor){
         this.actor = actor;
+        
+        this.plusTick = tickParent++;
     }
     
     public PlayerTrackData(String[] skin, String name){
         this.skin = skin;
         this.npcName = name;
+    
+        this.plusTick = tickParent++;
     }
     
     @Override
-    public DataType getDataType() {
-        return DataType.NPC;
-    }
+    public DataType getDataType() {return DataType.NPC;}
     
     public Player getActor() {return actor;}
     
     public Object getNPC(int playerID) {return npcMap.get(playerID);}
     
-    public void setSwing(int tick){
-        swing.add(tick);
-    }
+    public void setSwing(int tick){swing.add(tick);}
     
-    public void setSneak(int tick){
-        sneak.add(tick);
-    }
+    public void setSneak(int tick){sneak.add(tick);}
+    
+    public void setAudienceSkin(int audienceSkin) {this.audienceSkin = audienceSkin;}
     
     @Override
     public int getEndTick() {return endTick;}
@@ -95,9 +99,24 @@ public class PlayerTrackData implements TrackData{
                 Object nmsServer = NMSUtil.getNMSServer(Bukkit.getServer());
                 Object nmsWorld = NMSUtil.getNMSWorld(Objects.requireNonNull(baseLocation.getWorld()));
                 String name = npcName == null ? actor.getName() : npcName;
+                
+                if(audienceSkin != -1){
+                    try {
+                        String audienceName = scenePlayer.getAudiences().get(audienceSkin).getName();
+                        name = name.replace("%audience", audienceName);
+                    }catch (Exception e){e.printStackTrace();}
+                }
+                
                 GameProfile gameProfile = new GameProfile(UUID.randomUUID(), name);
-                if (skin != null) {
-                    gameProfile.getProperties().put("textures", new Property("textures", skin[0], skin[1]));
+                if(audienceSkin == -1){
+                    if (skin != null) {
+                        gameProfile.getProperties().put("textures", new Property("textures", skin[0], skin[1]));
+                    }
+                } else {
+                    try {
+                        String[] skinData = PlayerSkinCash.getPlayerSkin(scenePlayer.getAudiences().get(audienceSkin).getUniqueId().toString());
+                        if(skinData != null) gameProfile.getProperties().put("textures", new Property("textures", skinData[0], skinData[1]));
+                    }catch (Exception e){e.printStackTrace();}
                 }
                 npcMap.put(scenePlayer.getID(), NMSUtil.createEntityPlayer(nmsServer, nmsWorld, gameProfile));
             }
@@ -184,7 +203,8 @@ public class PlayerTrackData implements TrackData{
     
             if (locationMap.containsKey(tick)) {
         
-                Vector location = scenePlayer.getBaseLocation().clone().add(locationMap.get(tick)).toVector();
+                Vector relative = locationMap.get(tick);
+                Vector location = scenePlayer.getBaseLocation().clone().add(relative).toVector();
                 Vec2f yawPitch = yawPitchMap.get(tick);
                 
                 
@@ -221,15 +241,29 @@ public class PlayerTrackData implements TrackData{
                 }
         
                 NMSUtil.setEntityPositionRotation(npc, location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
-        
-                Object teleport = NMSUtil.createEntityTeleportPacket(npc);
-                Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(npc), (byte) yawPitch.x, (byte) yawPitch.y);
+    
                 Object rotation = NMSUtil.createEntityHeadRotationPacket(npc, (yawPitch.x * 256.0F) / 360.0F);
-        
-                for (Player player : scenePlayer.getAudiences()) {
-                    NMSUtil.sendPacket(player, lookMove);
-                    NMSUtil.sendPacket(player, teleport);
-                    NMSUtil.sendPacket(player, rotation);
+                Vector beforeLoc = locationMap.get(tick - 1);
+                
+                if (beforeLoc == null || (tick + plusTick) % 100 == 0) {
+                    Object teleport = NMSUtil.createEntityTeleportPacket(npc);
+                    Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(npc), (byte) ((yawPitch.x * 256.0F) / 360.0F), (byte) ((yawPitch.y * 256.0F) / 360.0F));
+    
+                    for (Player player : scenePlayer.getAudiences()) {
+                        NMSUtil.sendPacket(player, lookMove);
+                        NMSUtil.sendPacket(player, teleport);
+                        NMSUtil.sendPacket(player, rotation);
+                    }
+                } else {
+                    double deltaX = relative.getX() - beforeLoc.getX();
+                    double deltaY = relative.getY() - beforeLoc.getY();
+                    double deltaZ = relative.getZ() - beforeLoc.getZ();
+                    
+                    Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(npc), deltaX, deltaY, deltaZ, (byte) ((yawPitch.x * 256.0F) / 360.0F), (byte) ((yawPitch.y * 256.0F) / 360.0F));
+                    for (Player player : scenePlayer.getAudiences()) {
+                        NMSUtil.sendPacket(player, lookMove);
+                        NMSUtil.sendPacket(player, rotation);
+                    }
                 }
             }
     
@@ -279,8 +313,14 @@ public class PlayerTrackData implements TrackData{
         yml.set(root + ".name", this.npcName);
         
         if(this.skin != null){
-            yml.set(root + ".skin.value", this.skin[0]);
-            yml.set(root + ".skin.signature", this.skin[1]);
+            if(audienceSkin == -1){
+                yml.set(root + ".skin.value", this.skin[0]);
+                yml.set(root + ".skin.signature", this.skin[1]);
+            }
+        }
+        
+        if(audienceSkin != -1){
+            yml.set(root + ".skin.audience-skin", audienceSkin);
         }
         
         //locations  ([index] x, y, z, yaw, pitch)

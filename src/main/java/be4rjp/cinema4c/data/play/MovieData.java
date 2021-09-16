@@ -112,7 +112,7 @@ public class MovieData {
      * @param audiences ムービーを再生するプレイヤー
      * @return ムービーの再生ID、AsyncMoviePlayFinishEventで取得できるIDと一致します
      */
-    public int play(Set<Player> audiences){
+    public int play(List<Player> audiences){
         if(this.sceneDataList.size() == 0) return -1;
 
         playID++;
@@ -138,7 +138,7 @@ public class MovieData {
     }
     
     
-    public class SceneData {
+    public static class SceneData {
         
         private final RecordData recordData;
         private final Location baseLocation;

@@ -1,18 +1,16 @@
 package be4rjp.cinema4c.data.record.tracking;
 
-import be4rjp.cinema4c.Cinema4C;
 import be4rjp.cinema4c.nms.NMSUtil;
 import be4rjp.cinema4c.player.ScenePlayer;
 import be4rjp.cinema4c.recorder.SceneRecorder;
+import be4rjp.cinema4c.util.TaskHandler;
 import be4rjp.cinema4c.util.Vec2f;
 import io.papermc.lib.PaperLib;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.tukaani.xz.XZ;
 
 import java.util.*;
 
@@ -74,19 +72,35 @@ public class CameraTrackData implements TrackData{
             Vector location = scenePlayer.getBaseLocation().clone().add(locationMap.get(tick)).toVector();
             Vec2f yawPitch = yawPitchMap.get(tick);
             
+            Vector relative = locationMap.get(tick);
+            Vector beforeLoc = locationMap.get(tick - 1);
             try {
                 Object stand = standMap.get(scenePlayer.getID());
                 NMSUtil.setEntityPositionRotation(stand, location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
                 Object camera = NMSUtil.createCameraPacket(stand);
-                Object teleport = NMSUtil.createEntityTeleportPacket(stand);
-                Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(stand), (yawPitch.x * 256.0F) / 360.0F, (yawPitch.y * 256.0F) / 360.0F);
                 Object rotation = NMSUtil.createEntityHeadRotationPacket(stand, (yawPitch.x * 256.0F) / 360.0F);
+                
+                if(beforeLoc == null) {
+                    Object teleport = NMSUtil.createEntityTeleportPacket(stand);
+                    Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(stand), (yawPitch.x * 256.0F) / 360.0F, (yawPitch.y * 256.0F) / 360.0F);
     
-                for (Player player : scenePlayer.getAudiences()) {
-                    NMSUtil.sendPacket(player, rotation);
-                    NMSUtil.sendPacket(player, lookMove);
-                    NMSUtil.sendPacket(player, teleport);
-                    NMSUtil.sendPacket(player, camera);
+                    for (Player player : scenePlayer.getAudiences()) {
+                        NMSUtil.sendPacket(player, rotation);
+                        NMSUtil.sendPacket(player, lookMove);
+                        NMSUtil.sendPacket(player, teleport);
+                        NMSUtil.sendPacket(player, camera);
+                    }
+                } else {
+                    double deltaX = relative.getX() - beforeLoc.getX();
+                    double deltaY = relative.getY() - beforeLoc.getY();
+                    double deltaZ = relative.getZ() - beforeLoc.getZ();
+    
+                    Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(stand), deltaX, deltaY, deltaZ, (byte) ((yawPitch.x * 256.0F) / 360.0F), (byte) ((yawPitch.y * 256.0F) / 360.0F));
+                    for (Player player : scenePlayer.getAudiences()) {
+                        NMSUtil.sendPacket(player, rotation);
+                        NMSUtil.sendPacket(player, lookMove);
+                        NMSUtil.sendPacket(player, camera);
+                    }
                 }
             }catch (Exception e){e.printStackTrace();}
         }
@@ -159,15 +173,11 @@ public class CameraTrackData implements TrackData{
             scenePlayer.getAudiences().forEach(player -> PaperLib.teleportAsync(player, location));
         }catch (Exception e){e.printStackTrace();}
         
-        BukkitRunnable task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : scenePlayer.getAudiences()) {
-                    player.setGameMode(GameMode.SPECTATOR);
-                }
+        TaskHandler.runSync(() -> {
+            for (Player player : scenePlayer.getAudiences()) {
+                player.setGameMode(GameMode.SPECTATOR);
             }
-        };
-        task.runTask(Cinema4C.getPlugin());
+        });
     }
     
     @Override
@@ -193,18 +203,6 @@ public class CameraTrackData implements TrackData{
                 NMSUtil.sendPacket(player, camera);
             }
         }catch (Exception e){e.printStackTrace();}
-        
-        /*
-        BukkitRunnable task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : scenePlayer.getAudiences()) {
-                    player.setGameMode(GameMode.ADVENTURE);
-                }
-            }
-        };
-        task.runTask(Cinema4C.getPlugin());
-         */
     }
     
     @Override
