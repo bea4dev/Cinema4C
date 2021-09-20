@@ -303,8 +303,14 @@ public class PlayerTrackData implements TrackData{
     }
     
     
-    public void playPlayerLook(ScenePlayer scenePlayer, Object npc, Vector location){
+    public void playPlayerLook(ScenePlayer scenePlayer, int tick){
         try {
+            Object npc = npcMap.get(scenePlayer.getID());
+            if(npc == null) return;
+    
+            Vector location = locationMap.get(tick);
+            if(location == null) return;
+            
             Player lookPlayer = null;
             double distance = Double.MAX_VALUE;
             for (Player player : scenePlayer.getAudiences()) {

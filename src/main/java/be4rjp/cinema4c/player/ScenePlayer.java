@@ -3,6 +3,7 @@ package be4rjp.cinema4c.player;
 import be4rjp.cinema4c.Cinema4C;
 import be4rjp.cinema4c.data.play.MovieData;
 import be4rjp.cinema4c.data.record.RecordData;
+import be4rjp.cinema4c.data.record.tracking.PlayerTrackData;
 import be4rjp.cinema4c.data.record.tracking.TrackData;
 import be4rjp.cinema4c.event.AsyncMoviePlayFinishEvent;
 import be4rjp.cinema4c.event.AsyncScenePlayFinishEvent;
@@ -13,9 +14,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * RecordDataを再生するためのクラス
@@ -46,6 +47,9 @@ public class ScenePlayer extends BukkitRunnable {
     private int movieID = -1;
     
     private PlayMode playMode = PlayMode.ALL_PLAY;
+    
+    //再生を一時停止するtickと停止しているときにプレイヤーの方向をNPCに見させるかどうかの設定
+    private Map<Integer, Boolean> spikeTicks = new HashMap<>();
     
     
     public ScenePlayer(RecordData recordData, Location baseLocation, int startTick, int stopTick){
@@ -78,7 +82,11 @@ public class ScenePlayer extends BukkitRunnable {
     public int getMoviePlayID() {return movieID;}
 
     public void setMoviePlayID(int moviePlayID) {this.movieID = moviePlayID;}
-
+    
+    public void setSpikeTicks(Map<Integer, Boolean> spikeTicks) {this.spikeTicks = spikeTicks;}
+    
+    public Map<Integer, Boolean> getSpikeTicks() {return spikeTicks;}
+    
     public void initialize(){
         for(TrackData trackData : recordData.getTrackData()){
             trackData.playInitialize(this);
@@ -130,6 +138,21 @@ public class ScenePlayer extends BukkitRunnable {
     
     @Override
     public void run() {
+        
+        Boolean playerLook = spikeTicks.get(tick);
+        if(playerLook != null){
+            
+            if(playerLook){
+                for(TrackData trackData : recordData.getTrackData()){
+                    if(trackData instanceof PlayerTrackData){
+                        PlayerTrackData playerTrackData = (PlayerTrackData) trackData;
+                        playerTrackData.playPlayerLook(this, tick);
+                    }
+                }
+            }
+            
+            return;
+        }
         
         recordData.playTrackData(this, tick);
         
