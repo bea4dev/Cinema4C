@@ -13,10 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * RecordDataを再生するためのクラス
@@ -36,6 +33,8 @@ public class ScenePlayer extends BukkitRunnable {
     
     //現在の生成時間
     private int tick;
+    //再生開始時間
+    private int startTick;
     //再生終了時間
     private int endTick;
     
@@ -48,8 +47,10 @@ public class ScenePlayer extends BukkitRunnable {
     
     private PlayMode playMode = PlayMode.ALL_PLAY;
     
-    //再生を一時停止するtickと停止しているときにプレイヤーの方向をNPCに見させるかどうかの設定
-    private Map<Integer, Boolean> spikeTicks = new HashMap<>();
+    //再生を一時停止しているかどうか
+    private boolean isPause = false;
+    //他プラグインから実行するための拡張機能
+    private Set<Runnable> runnableSet = new HashSet<>();
     
     
     public ScenePlayer(RecordData recordData, Location baseLocation, int startTick, int stopTick){
@@ -62,6 +63,7 @@ public class ScenePlayer extends BukkitRunnable {
         this.baseLocation = baseLocation;
         
         this.tick = startTick;
+        this.startTick = startTick;
         
         if(stopTick == 0) {
             this.endTick = 0;
@@ -83,9 +85,15 @@ public class ScenePlayer extends BukkitRunnable {
 
     public void setMoviePlayID(int moviePlayID) {this.movieID = moviePlayID;}
     
-    public void setSpikeTicks(Map<Integer, Boolean> spikeTicks) {this.spikeTicks = spikeTicks;}
+    public int getTick() {return tick;}
     
-    public Map<Integer, Boolean> getSpikeTicks() {return spikeTicks;}
+    public void setTick(int tick) {this.tick = tick;}
+    
+    public boolean isPause() {return isPause;}
+    
+    public void setPause(boolean pause) {isPause = pause;}
+    
+    public Set<Runnable> getRunnableSet() {return runnableSet;}
     
     public void initialize(){
         for(TrackData trackData : recordData.getTrackData()){
@@ -139,18 +147,15 @@ public class ScenePlayer extends BukkitRunnable {
     @Override
     public void run() {
         
-        Boolean playerLook = spikeTicks.get(tick);
-        if(playerLook != null){
-            
-            if(playerLook){
-                for(TrackData trackData : recordData.getTrackData()){
-                    if(trackData instanceof PlayerTrackData){
-                        PlayerTrackData playerTrackData = (PlayerTrackData) trackData;
-                        playerTrackData.playPlayerLook(this, tick);
-                    }
+        runnableSet.forEach(Runnable::run);
+        
+        if(isPause){
+            for(TrackData trackData : recordData.getTrackData()){
+                if(trackData instanceof PlayerTrackData){
+                    PlayerTrackData playerTrackData = (PlayerTrackData) trackData;
+                    playerTrackData.playPlayerLook(this, tick);
                 }
             }
-            
             return;
         }
         
@@ -158,7 +163,7 @@ public class ScenePlayer extends BukkitRunnable {
         
         if(tick == endTick){
             if(playMode == PlayMode.LOOP) {
-                tick = recordData.getLoopBackTick();
+                tick = recordData.getLoopBackTick() == 0 ? startTick : recordData.getLoopBackTick();
             }else{
                 this.cancel();
             }
