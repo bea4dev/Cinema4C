@@ -199,7 +199,7 @@ WorldEditでトラッキングする範囲を選択した後、前のコマン�
 <dependency>
     <groupId>com.github.Be4rJP</groupId>
     <artifactId>Cinema4C</artifactId>
-    <version>v1.0.1</version>
+    <version>v1.0.2</version>
     <scope>provided</scope>
 </dependency>
 ```

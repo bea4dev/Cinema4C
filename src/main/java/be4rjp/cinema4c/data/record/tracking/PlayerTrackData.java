@@ -303,6 +303,44 @@ public class PlayerTrackData implements TrackData{
     }
     
     
+    public void playPlayerLook(ScenePlayer scenePlayer, Object npc, Vector location){
+        try {
+            Player lookPlayer = null;
+            double distance = Double.MAX_VALUE;
+            for (Player player : scenePlayer.getAudiences()) {
+                double d = LocationUtil.distanceSquaredSafeDifferentWorld(player.getLocation(),
+                        location.toLocation(Objects.requireNonNull(scenePlayer.getBaseLocation().getWorld())));
+        
+                if (d < distance) {
+            
+                    lookPlayer = player;
+                    distance = d;
+                }
+            }
+    
+            Vec2f yawPitch;
+            if (lookPlayer == null) {
+                yawPitch = new Vec2f(0.0F, 0.0F);
+            } else {
+                Location playerLocation = lookPlayer.getLocation();
+                Location temp = scenePlayer.getBaseLocation().clone();
+                temp.setDirection(new Vector(playerLocation.getX() - location.getX(), playerLocation.getY() - location.getY(), playerLocation.getZ() - location.getZ()));
+                yawPitch = new Vec2f(temp.getYaw(), temp.getPitch());
+            }
+    
+            NMSUtil.setEntityPositionRotation(npc, location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
+            Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(npc), (byte) ((yawPitch.x * 256.0F) / 360.0F), (byte) ((yawPitch.y * 256.0F) / 360.0F));
+            Object rotation = NMSUtil.createEntityHeadRotationPacket(npc, (yawPitch.x * 256.0F) / 360.0F);
+            
+            for (Player player : scenePlayer.getAudiences()) {
+                NMSUtil.sendPacket(player, lookMove);
+                NMSUtil.sendPacket(player, rotation);
+            }
+            
+        } catch (Exception e){e.printStackTrace();}
+    }
+    
+    
     @Override
     public void write(FileConfiguration yml, String root){
         if(yml.contains(root)){
