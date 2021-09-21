@@ -7,6 +7,7 @@ import be4rjp.cinema4c.data.record.tracking.PlayerTrackData;
 import be4rjp.cinema4c.data.record.tracking.TrackData;
 import be4rjp.cinema4c.event.AsyncMoviePlayFinishEvent;
 import be4rjp.cinema4c.event.AsyncScenePlayFinishEvent;
+import be4rjp.cinema4c.nms.NMSUtil;
 import be4rjp.cinema4c.util.TaskHandler;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -150,13 +151,23 @@ public class ScenePlayer extends BukkitRunnable {
         runnableSet.forEach(Runnable::run);
         
         if(isPause){
+            boolean pause = false;
             for(TrackData trackData : recordData.getTrackData()){
                 if(trackData instanceof PlayerTrackData){
                     PlayerTrackData playerTrackData = (PlayerTrackData) trackData;
+                    try {
+                        Location npcLocation = NMSUtil.getEntityLocation(playerTrackData.getNPC(this.getID()));
+                        if(npcLocation.clone().add(0.0, -0.1, 0.0).getBlock().getType().toString().endsWith("AIR")){
+                            continue;
+                        }else{
+                            pause = true;
+                        }
+                    }catch (Exception e){e.printStackTrace();}
                     playerTrackData.playPlayerLook(this, tick);
                 }
             }
-            return;
+            
+            if(pause) return;
         }
         
         recordData.playTrackData(this, tick);

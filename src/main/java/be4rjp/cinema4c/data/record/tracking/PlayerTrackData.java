@@ -310,6 +310,7 @@ public class PlayerTrackData implements TrackData{
     
             Vector location = locationMap.get(tick);
             if(location == null) return;
+            location = location.clone().add(scenePlayer.getBaseLocation().toVector());
             
             Player lookPlayer = null;
             double distance = Double.MAX_VALUE;
@@ -335,7 +336,7 @@ public class PlayerTrackData implements TrackData{
             }
     
             NMSUtil.setEntityPositionRotation(npc, location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
-            Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(npc), (byte) ((yawPitch.x * 256.0F) / 360.0F), (byte) ((yawPitch.y * 256.0F) / 360.0F));
+            Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(npc), 0, 0, 0, (byte) ((yawPitch.x * 256.0F) / 360.0F), (byte) ((yawPitch.y * 256.0F) / 360.0F));
             Object rotation = NMSUtil.createEntityHeadRotationPacket(npc, (yawPitch.x * 256.0F) / 360.0F);
             
             for (Player player : scenePlayer.getAudiences()) {
