@@ -218,7 +218,7 @@ public class PlayerTrackData implements TrackData{
                 
                 if(playerLook){
                     Player lookPlayer = null;
-                    double distance = Double.MAX_VALUE;
+                    double distance = 100;
                     for(Player player : scenePlayer.getAudiences()){
                         double d = LocationUtil.distanceSquaredSafeDifferentWorld(player.getLocation(),
                                 location.toLocation(Objects.requireNonNull(scenePlayer.getBaseLocation().getWorld())));
@@ -231,7 +231,7 @@ public class PlayerTrackData implements TrackData{
                     }
                     
                     if(lookPlayer == null){
-                        yawPitch = new Vec2f(0.0F, 0.0F);
+                        //yawPitch = new Vec2f(0.0F, 0.0F);
                     }else{
                         Location playerLocation = lookPlayer.getLocation();
                         Location temp = scenePlayer.getBaseLocation().clone();
@@ -313,7 +313,7 @@ public class PlayerTrackData implements TrackData{
             location = location.clone().add(scenePlayer.getBaseLocation().toVector());
             
             Player lookPlayer = null;
-            double distance = Double.MAX_VALUE;
+            double distance = 100;
             for (Player player : scenePlayer.getAudiences()) {
                 double d = LocationUtil.distanceSquaredSafeDifferentWorld(player.getLocation(),
                         location.toLocation(Objects.requireNonNull(scenePlayer.getBaseLocation().getWorld())));
@@ -325,9 +325,9 @@ public class PlayerTrackData implements TrackData{
                 }
             }
     
-            Vec2f yawPitch;
+            Vec2f yawPitch = yawPitchMap.get(tick);
             if (lookPlayer == null) {
-                yawPitch = new Vec2f(0.0F, 0.0F);
+                //yawPitch = new Vec2f(0.0F, 0.0F);
             } else {
                 Location playerLocation = lookPlayer.getLocation();
                 Location temp = scenePlayer.getBaseLocation().clone();
