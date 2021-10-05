@@ -52,6 +52,8 @@ public class ScenePlayer extends BukkitRunnable {
     private boolean isPause = false;
     //他プラグインから実行するための拡張機能
     private Set<Runnable> runnableSet = new HashSet<>();
+    //再生終了時に実行する別プラグインの拡張機能
+    private Set<Runnable> cancelRunnableSet = new HashSet<>();
     
     
     public ScenePlayer(RecordData recordData, Location baseLocation, int startTick, int stopTick){
@@ -95,6 +97,8 @@ public class ScenePlayer extends BukkitRunnable {
     public void setPause(boolean pause) {isPause = pause;}
     
     public Set<Runnable> getRunnableSet() {return runnableSet;}
+    
+    public Set<Runnable> getCancelRunnableSet() {return cancelRunnableSet;}
     
     public void initialize(){
         for(TrackData trackData : recordData.getTrackData()){
@@ -196,6 +200,8 @@ public class ScenePlayer extends BukkitRunnable {
     public synchronized void cancel() throws IllegalStateException {
         AsyncScenePlayFinishEvent endEvent = new AsyncScenePlayFinishEvent(this);
         Cinema4C.getPlugin().getServer().getPluginManager().callEvent(endEvent);
+        
+        cancelRunnableSet.forEach(Runnable::run);
         
         for(TrackData trackData : recordData.getTrackData()){
             trackData.playEnd(this);
