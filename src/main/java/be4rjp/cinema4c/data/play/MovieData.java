@@ -120,7 +120,7 @@ public class MovieData {
         ScenePlayer beforePlayer = null;
         ScenePlayer firstPlayer = null;
         for(SceneData sceneData : sceneDataList){
-            ScenePlayer scenePlayer = new ScenePlayer(sceneData.getRecordData(), sceneData.getBaseLocation(), sceneData.getStartTick(), sceneData.getStopTick());
+            ScenePlayer scenePlayer = new ScenePlayer(sceneData.getRecordData(), sceneData.getBaseLocation().getWorld(), sceneData.getStartTick(), sceneData.getStopTick());
             scenePlayer.setAudiences(audiences);
             if(beforePlayer != null) beforePlayer.setNextPlayer(scenePlayer);
             if(index == sceneDataList.size()){

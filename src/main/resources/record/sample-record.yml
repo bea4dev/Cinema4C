@@ -1,4 +1,4 @@
-version: 1
+version: 2
 loop-back-tick: 0
 track-data:
   messages:

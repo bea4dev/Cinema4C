@@ -11,6 +11,7 @@ import be4rjp.cinema4c.nms.NMSUtil;
 import be4rjp.cinema4c.util.TaskHandler;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -29,8 +30,8 @@ public class ScenePlayer extends BukkitRunnable {
     private final RecordData recordData;
     //データを再生して見せるプレイヤー
     private List<Player> audiences;
-    //再生する基準位置、録画時に指定したリージョンの最小位置
-    private final Location baseLocation;
+    //再生するワールド
+    private final World world;
     
     //現在の生成時間
     private int tick;
@@ -56,14 +57,13 @@ public class ScenePlayer extends BukkitRunnable {
     private Set<Runnable> cancelRunnableSet = new HashSet<>();
     
     
-    public ScenePlayer(RecordData recordData, Location baseLocation, int startTick, int stopTick){
+    public ScenePlayer(RecordData recordData, World world, int startTick, int stopTick){
         this.id = playerID;
         playerID++;
         
         this.recordData = recordData;
         this.audiences = new ArrayList<>();
-    
-        this.baseLocation = baseLocation;
+        this.world = world;
         
         this.tick = startTick;
         this.startTick = startTick;
@@ -100,6 +100,8 @@ public class ScenePlayer extends BukkitRunnable {
     
     public Set<Runnable> getCancelRunnableSet() {return cancelRunnableSet;}
     
+    public World getWorld() {return world;}
+    
     public void initialize(){
         for(TrackData trackData : recordData.getTrackData()){
             trackData.playInitialize(this);
@@ -120,13 +122,6 @@ public class ScenePlayer extends BukkitRunnable {
      * @return RecordData
      */
     public RecordData getRecordData() {return recordData;}
-    
-    
-    /**
-     * このプレイヤーの再生基準位置を取得
-     * @return Location
-     */
-    public Location getBaseLocation() {return baseLocation.clone();}
     
     
     /**

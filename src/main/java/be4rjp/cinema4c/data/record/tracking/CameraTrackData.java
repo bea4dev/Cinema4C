@@ -8,6 +8,7 @@ import be4rjp.cinema4c.util.Vec2f;
 import io.papermc.lib.PaperLib;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -50,9 +51,6 @@ public class CameraTrackData implements TrackData{
         if(actor == null) return;
     
         Location location = actor.getLocation();
-        location.setX(location.getX() - sceneRecorder.getRegionMin().getX());
-        location.setY(location.getY() - sceneRecorder.getRegionMin().getY());
-        location.setZ(location.getZ() - sceneRecorder.getRegionMin().getZ());
         this.locationMap.put(tick, location.toVector());
         this.yawPitchMap.put(tick, new Vec2f(location.getYaw(), location.getPitch()));
     
@@ -69,7 +67,7 @@ public class CameraTrackData implements TrackData{
     @Override
     public void play(ScenePlayer scenePlayer, int tick) {
         if(locationMap.containsKey(tick)) {
-            Vector location = scenePlayer.getBaseLocation().clone().add(locationMap.get(tick)).toVector();
+            Vector location = locationMap.get(tick);
             Vec2f yawPitch = yawPitchMap.get(tick);
             
             Vector relative = locationMap.get(tick);
@@ -112,10 +110,9 @@ public class CameraTrackData implements TrackData{
      */
     public void initializeStand(ScenePlayer scenePlayer){
         //エンティティを作成してScenePlayerのIDと紐づけて保存
-        Location baseLocation = scenePlayer.getBaseLocation();
         if(standMap.get(scenePlayer.getID()) == null){
             try {
-                Object stand = NMSUtil.createEntityArmorStand(baseLocation.getWorld(), baseLocation.getX(), baseLocation.getY(), baseLocation.getZ());
+                Object stand = NMSUtil.createEntityArmorStand(scenePlayer.getWorld(), 0, 0, 0);
                 standMap.put(scenePlayer.getID(), stand);
             }catch (Exception e){e.printStackTrace();}
         }
@@ -125,9 +122,8 @@ public class CameraTrackData implements TrackData{
                 Vector location = locationMap.get(index);
                 Vec2f yawPitch = yawPitchMap.get(index);
                 if(location != null && yawPitch != null){
-                    Location loc = baseLocation.clone().add(location);
                     try {
-                        NMSUtil.setEntityPositionRotation(standMap.get(scenePlayer.getID()), loc.getX(), loc.getY(), loc.getZ(), yawPitch.x, yawPitch.y);
+                        NMSUtil.setEntityPositionRotation(standMap.get(scenePlayer.getID()), location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
                     }catch (Exception e){e.printStackTrace();}
                     return;
                 }

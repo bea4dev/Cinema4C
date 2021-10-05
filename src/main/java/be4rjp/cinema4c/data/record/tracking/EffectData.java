@@ -34,12 +34,12 @@ public class EffectData implements TrackData{
     public void play(ScenePlayer scenePlayer, int tick) {
         if(soundMap.containsKey(tick)){
             CSound cSound = soundMap.get(tick);
-            scenePlayer.getAudiences().forEach(audience -> cSound.play(audience, scenePlayer.getBaseLocation()));
+            scenePlayer.getAudiences().forEach(audience -> cSound.play(audience, audience.getLocation()));
         }
     
         if(particleMap.containsKey(tick)){
             CParticle cParticle = particleMap.get(tick);
-            scenePlayer.getAudiences().forEach(audience -> cParticle.play(audience, scenePlayer.getBaseLocation()));
+            scenePlayer.getAudiences().forEach(audience -> cParticle.play(audience, audience.getLocation()));
         }
     }
     

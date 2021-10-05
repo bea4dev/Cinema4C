@@ -30,7 +30,7 @@ public class PlayManager {
      * @return ScenePlayer
      */
     public static ScenePlayer createScenePlayer(RecordData recordData, Location minLocation, int startTick, int endTick){
-        ScenePlayer scenePlayer = new ScenePlayer(recordData, minLocation, startTick, endTick);
+        ScenePlayer scenePlayer = new ScenePlayer(recordData, minLocation.getWorld(), startTick, endTick);
         return scenePlayer;
     }
     

@@ -94,10 +94,9 @@ public class PlayerTrackData implements TrackData{
     public void initializeNPC(ScenePlayer scenePlayer){
         try {
             //NPCを作成してScenePlayerのIDと紐づけて保存
-            Location baseLocation = scenePlayer.getBaseLocation();
             if (npcMap.get(scenePlayer.getID()) == null) {
                 Object nmsServer = NMSUtil.getNMSServer(Bukkit.getServer());
-                Object nmsWorld = NMSUtil.getNMSWorld(Objects.requireNonNull(baseLocation.getWorld()));
+                Object nmsWorld = NMSUtil.getNMSWorld(Objects.requireNonNull(scenePlayer.getWorld()));
                 String name = npcName == null ? actor.getName() : npcName;
                 
                 if(audienceSkin != -1){
@@ -124,14 +123,14 @@ public class PlayerTrackData implements TrackData{
             if (locationMap.size() > 0) {
                 for (int index = 0; index < endTick; index++) {
                     Vector location = locationMap.get(index);
+                    Vec2f yawPitch = yawPitchMap.get(index);
                     if (location != null) {
-                        Location loc = baseLocation.clone().add(location);
-                        NMSUtil.setEntityPositionRotation(npcMap.get(scenePlayer.getID()), loc.getX(), loc.getY(), loc.getZ(), baseLocation.getYaw(), baseLocation.getPitch());
+                        NMSUtil.setEntityPositionRotation(npcMap.get(scenePlayer.getID()), location.getX(), location.getY(), location.getZ(), yawPitch.x, yawPitch.y);
                         return;
                     }
                 }
             }
-            NMSUtil.setEntityPositionRotation(npcMap.get(scenePlayer.getID()), baseLocation.getX(), baseLocation.getY(), baseLocation.getZ(), baseLocation.getYaw(), baseLocation.getPitch());
+            NMSUtil.setEntityPositionRotation(npcMap.get(scenePlayer.getID()), 0, 0, 0, 0, 0);
         }catch (Exception e){e.printStackTrace();}
     }
     
@@ -161,9 +160,6 @@ public class PlayerTrackData implements TrackData{
         if(actor.isSneaking()) setSneak(tick);
         
         Location location = actor.getLocation();
-        location.setX(location.getX() - sceneRecorder.getRegionMin().getX());
-        location.setY(location.getY() - sceneRecorder.getRegionMin().getY());
-        location.setZ(location.getZ() - sceneRecorder.getRegionMin().getZ());
         Location eyeLocation = actor.getEyeLocation();
         this.locationMap.put(tick, location.toVector());
         this.yawPitchMap.put(tick, new Vec2f(eyeLocation.getYaw(), eyeLocation.getPitch()));
@@ -202,9 +198,8 @@ public class PlayerTrackData implements TrackData{
             Object npc = npcMap.get(scenePlayer.getID());
     
             if (locationMap.containsKey(tick)) {
-        
-                Vector relative = locationMap.get(tick);
-                Vector location = scenePlayer.getBaseLocation().clone().add(relative).toVector();
+                
+                Vector location = locationMap.get(tick);
                 Vec2f yawPitch = yawPitchMap.get(tick);
                 
                 
@@ -221,7 +216,7 @@ public class PlayerTrackData implements TrackData{
                     double distance = 100;
                     for(Player player : scenePlayer.getAudiences()){
                         double d = LocationUtil.distanceSquaredSafeDifferentWorld(player.getLocation(),
-                                location.toLocation(Objects.requireNonNull(scenePlayer.getBaseLocation().getWorld())));
+                                location.toLocation(Objects.requireNonNull(scenePlayer.getWorld())));
                         
                         if(d < distance){
                             
@@ -234,7 +229,7 @@ public class PlayerTrackData implements TrackData{
                         //yawPitch = new Vec2f(0.0F, 0.0F);
                     }else{
                         Location playerLocation = lookPlayer.getLocation();
-                        Location temp = scenePlayer.getBaseLocation().clone();
+                        Location temp = new Location(scenePlayer.getWorld(), 0, 0, 0, 0, 0);
                         temp.setDirection(new Vector(playerLocation.getX() - location.getX(), playerLocation.getY() - location.getY(), playerLocation.getZ() - location.getZ()));
                         yawPitch = new Vec2f(temp.getYaw(), temp.getPitch());
                     }
@@ -255,9 +250,9 @@ public class PlayerTrackData implements TrackData{
                         NMSUtil.sendPacket(player, rotation);
                     }
                 } else {
-                    double deltaX = relative.getX() - beforeLoc.getX();
-                    double deltaY = relative.getY() - beforeLoc.getY();
-                    double deltaZ = relative.getZ() - beforeLoc.getZ();
+                    double deltaX = location.getX() - beforeLoc.getX();
+                    double deltaY = location.getY() - beforeLoc.getY();
+                    double deltaZ = location.getZ() - beforeLoc.getZ();
                     
                     Object lookMove = NMSUtil.createEntityMoveLookPacket(NMSUtil.getEntityID(npc), deltaX, deltaY, deltaZ, (byte) ((yawPitch.x * 256.0F) / 360.0F), (byte) ((yawPitch.y * 256.0F) / 360.0F));
                     for (Player player : scenePlayer.getAudiences()) {
@@ -310,13 +305,12 @@ public class PlayerTrackData implements TrackData{
     
             Vector location = locationMap.get(tick);
             if(location == null) return;
-            location = location.clone().add(scenePlayer.getBaseLocation().toVector());
             
             Player lookPlayer = null;
             double distance = 100;
             for (Player player : scenePlayer.getAudiences()) {
                 double d = LocationUtil.distanceSquaredSafeDifferentWorld(player.getLocation(),
-                        location.toLocation(Objects.requireNonNull(scenePlayer.getBaseLocation().getWorld())));
+                        location.toLocation(Objects.requireNonNull(scenePlayer.getWorld())));
         
                 if (d < distance) {
             
@@ -330,7 +324,7 @@ public class PlayerTrackData implements TrackData{
                 //yawPitch = new Vec2f(0.0F, 0.0F);
             } else {
                 Location playerLocation = lookPlayer.getLocation();
-                Location temp = scenePlayer.getBaseLocation().clone();
+                Location temp = new Location(scenePlayer.getWorld(), 0, 0, 0, 0, 0);
                 temp.setDirection(new Vector(playerLocation.getX() - location.getX(), playerLocation.getY() - location.getY(), playerLocation.getZ() - location.getZ()));
                 yawPitch = new Vec2f(temp.getYaw(), temp.getPitch());
             }

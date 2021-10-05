@@ -18,7 +18,7 @@ import java.util.Set;
 public class RecordData {
     
     //過去バージョンとの互換性を確保できなくなった時に変更する
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
     
     private final String name;
     //各種の録画データ

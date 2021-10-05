@@ -74,9 +74,6 @@ location:
   - '[4] 0.3942612784049331, 1.0, 0.19419512996925548, 142.02148, -5.5566'
 ```
 locationのリストがtickと結び付けたプレイヤーの座標です。
-座標は録画前に決めた基準座標からの相対座標です。
-
-録画するときにWorldEditで選択した範囲の最小座標を基準座標としているので、別の場所に記録しておくことをお勧めします。
 
 ```yaml
 sneak: 0, 1, 2, 3
@@ -199,7 +196,7 @@ WorldEditでトラッキングする範囲を選択した後、前のコマン�
 <dependency>
     <groupId>com.github.Be4rJP</groupId>
     <artifactId>Cinema4C</artifactId>
-    <version>v1.0.2</version>
+    <version>v1.0.3</version>
     <scope>provided</scope>
 </dependency>
 ```
