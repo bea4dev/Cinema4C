@@ -5,6 +5,7 @@ import be4rjp.cinema4c.data.record.RecordData;
 import be4rjp.cinema4c.exception.DifferentVersionException;
 import be4rjp.cinema4c.player.ScenePlayer;
 import be4rjp.cinema4c.recorder.RecordManager;
+import be4rjp.cinema4c.util.C4CLocation;
 import be4rjp.cinema4c.util.ConfigUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -80,15 +81,11 @@ public class MovieData {
             
             int startTick = Integer.parseInt(args[1]);
             int stopTick = Integer.parseInt(args[2]);
-    
-            World world = Bukkit.getWorld(args[3]);
-            if(world == null){
-                world = Bukkit.createWorld(new WorldCreator(args[3]));
-            }
+            
             double x = Double.parseDouble(args[4]);
             double y = Double.parseDouble(args[5]);
             double z = Double.parseDouble(args[6]);
-            Location location = new Location(world, x, y, z);
+            C4CLocation location = new C4CLocation(args[3], x, y, z);
             
             SceneData sceneData = new SceneData(recordData, startTick, stopTick, location);
             this.sceneDataList.add(sceneData);
@@ -120,7 +117,7 @@ public class MovieData {
         ScenePlayer beforePlayer = null;
         ScenePlayer firstPlayer = null;
         for(SceneData sceneData : sceneDataList){
-            ScenePlayer scenePlayer = new ScenePlayer(sceneData.getRecordData(), sceneData.getBaseLocation().getWorld(), sceneData.getStartTick(), sceneData.getStopTick());
+            ScenePlayer scenePlayer = new ScenePlayer(sceneData.getRecordData(), sceneData.getBaseLocation().getBukkitLocation().getWorld(), sceneData.getStartTick(), sceneData.getStopTick());
             scenePlayer.setAudiences(audiences);
             if(beforePlayer != null) beforePlayer.setNextPlayer(scenePlayer);
             if(index == sceneDataList.size()){
@@ -141,11 +138,11 @@ public class MovieData {
     public static class SceneData {
         
         private final RecordData recordData;
-        private final Location baseLocation;
+        private final C4CLocation baseLocation;
         private final int startTick;
         private final int stopTick;
         
-        public SceneData(RecordData recordData, int startTick, int stopTick, Location baseLocation){
+        public SceneData(RecordData recordData, int startTick, int stopTick, C4CLocation baseLocation){
             this.recordData = recordData;
             this.baseLocation = baseLocation;
             this.startTick = startTick;
@@ -156,7 +153,7 @@ public class MovieData {
     
         public int getStopTick() {return stopTick;}
     
-        public Location getBaseLocation() {return baseLocation;}
+        public C4CLocation getBaseLocation() {return baseLocation;}
     
         public RecordData getRecordData() {return recordData;}
     }

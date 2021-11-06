@@ -49,6 +49,8 @@ public class ScenePlayer extends BukkitRunnable {
     
     private PlayMode playMode = PlayMode.ALL_PLAY;
     
+    private boolean pausing = false;
+    
     //再生を一時停止しているかどうか
     private boolean isPause = false;
     //他プラグインから実行するための拡張機能
@@ -94,7 +96,10 @@ public class ScenePlayer extends BukkitRunnable {
     
     public boolean isPause() {return isPause;}
     
-    public void setPause(boolean pause) {isPause = pause;}
+    public void setPause(boolean pause) {
+        isPause = pause;
+        if(!pause) pausing = false;
+    }
     
     public Set<Runnable> getRunnableSet() {return runnableSet;}
     
@@ -150,23 +155,40 @@ public class ScenePlayer extends BukkitRunnable {
         runnableSet.forEach(Runnable::run);
         
         if(isPause){
-            boolean pause = false;
             for(TrackData trackData : recordData.getTrackData()){
                 if(trackData instanceof PlayerTrackData){
                     PlayerTrackData playerTrackData = (PlayerTrackData) trackData;
                     try {
                         Location npcLocation = NMSUtil.getEntityLocation(playerTrackData.getNPC(this.getID()));
-                        if(npcLocation.clone().add(0.0, -0.1, 0.0).getBlock().getType().toString().endsWith("AIR")){
-                            continue;
-                        }else{
-                            pause = true;
-                        }
+                        
+                        TaskHandler.supplyWorldSync(npcLocation.getWorld(),
+                                () -> npcLocation.clone().add(0.0, -0.1, 0.0).getBlock().getType())
+                                .thenAccept(material -> {
+                                    if(!material.toString().endsWith("AIR")){
+                                        pausing = true;
+                                    }else{
+                                        recordData.playTrackData(this, tick);
+    
+                                        if(tick == endTick){
+                                            if(playMode == PlayMode.LOOP) {
+                                                tick = recordData.getLoopBackTick() == 0 ? startTick : recordData.getLoopBackTick();
+                                            }else{
+                                                this.cancel();
+                                            }
+                                        }
+                                        
+                                        tick++;
+                                    }
+                                });
+                        
                     }catch (Exception e){e.printStackTrace();}
                     playerTrackData.playPlayerLook(this, tick);
+                    
+                    break;
                 }
             }
             
-            if(pause) return;
+            return;
         }
         
         recordData.playTrackData(this, tick);
