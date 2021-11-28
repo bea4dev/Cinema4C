@@ -419,7 +419,7 @@ public class NMSUtil {
     }
         
         
-        public static Object createEntityEquipmentPacket(Object entity, ItemStack itemStack)
+    public static Object createEntityEquipmentPacket(Object entity, ItemStack itemStack, WrappedItemSlot wrappedItemSlot)
             throws ClassNotFoundException, SecurityException, NoSuchMethodException, NoSuchFieldException,
             IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
         
@@ -430,7 +430,7 @@ public class NMSUtil {
         
         Object slot = null;
         for (Object o: EnumItemSlot.getEnumConstants()) {
-            if(o.toString().equals("HEAD"))
+            if(o.toString().equals(wrappedItemSlot.toString()))
                 slot = o;
         }
         
